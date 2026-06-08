@@ -7,16 +7,20 @@
 namespace medusa {
 
 config log_config;
+FILE* log_file = nullptr;
 
 void write_banner() {
-  write_log(log_level::log,
-            "Medusa Version %d.%d.%d\nWritten By: William Reji\n",
+  write_log(log_level::log, "Medusa Version %d.%d.%d\n",
             get_major(medusa_version), get_minor(medusa_version),
             get_patch(medusa_version));
 }
 
 void initialize(const medusa::config& conf) {
   log_config = conf;
+
+  if (true == log_config.write_to_file) {
+    log_file = fopen(log_config.log_file.c_str(), "w");
+  }
 
   if (true == conf.write_intro) {
     write_banner();
@@ -60,8 +64,24 @@ void write_log(medusa::log_level level, const char* format, ...) {
   printf("%s%s\x1b[0m", color_code, buffer);
 
 file_log:
+
+  if (nullptr == log_file || level < log_config.file_level) {
+    goto log_exit;
+  }
+
+  fprintf(log_file, "%s", buffer);
+log_exit:
   return;
 }
 
-void deinitialize() {}
+void deinitialize() {
+  if (true == log_config.write_outro) {
+    write_log(log_level::log,
+              "/********************* END OF LOG *********************/\n");
+  }
+
+  if (nullptr != log_file) {
+    fclose(log_file);
+  }
+}
 }  // namespace medusa
