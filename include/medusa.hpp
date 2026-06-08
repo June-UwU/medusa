@@ -39,6 +39,7 @@ struct config {
   bool write_outro = true;
   bool force_flush = true;
   bool use_color = true;
+  bool write_to_file = true;
 };
 
 void initialize(const medusa::config& conf);
