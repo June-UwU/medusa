@@ -27,7 +27,7 @@ constexpr const uint32_t get_patch(uint32_t version) {
   return version & 0xffff;
 }
 
-constexpr const uint32_t medusa_version = make_version(0, 0, 1);
+constexpr const uint32_t medusa_version = make_version(0, 1, 0);
 
 enum log_level { log = 0x0, paranoid, debug, warning, fatal };
 
@@ -39,6 +39,7 @@ struct config {
   bool write_outro = true;
   bool force_flush = true;
   bool use_color = true;
+  bool write_to_file = true;
 };
 
 void initialize(const medusa::config& conf);
