@@ -1,4 +1,5 @@
 #pragma once
+#include <chrono>
 #include <cstdint>
 #include <string>
 
@@ -40,9 +41,11 @@ struct config {
   bool force_flush = true;
   bool use_color = true;
   bool write_to_file = true;
+  std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
 };
 
 void initialize(const medusa::config& conf);
 void write_log(medusa::log_level level, const char* format, ...);
+void write_timed_log(medusa::log_level level, const char* format, ...);
 void deinitialize();
 };  // namespace medusa
