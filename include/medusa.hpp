@@ -38,7 +38,7 @@ struct config {
   log_level console_level = log_level::log;
   bool write_intro = true;
   bool write_outro = true;
-  bool force_flush = true;
+  bool force_flush = false;
   bool use_color = true;
   bool write_to_file = true;
   std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
