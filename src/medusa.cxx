@@ -8,6 +8,18 @@ namespace medusa {
 
 config log_config;
 FILE* log_file = nullptr;
+bool initialized = false;
+
+double get_elapsed_seconds() {
+  if (false == initialized) {
+    return 0.0f;
+  }
+  const std::chrono::time_point<std::chrono::high_resolution_clock> time_now =
+      std::chrono::high_resolution_clock::now();
+  const std::chrono::duration<double> time_elapsed =
+      time_now - log_config.start_time;
+  return time_elapsed.count();
+}
 
 void write_banner() {
   write_log(log_level::log, "Medusa Version %d.%d.%d\n",
@@ -32,6 +44,8 @@ void initialize(const medusa::config& conf) {
   } else {
     write_log(log_level::log, "log file : %s\n", log_config.log_file.c_str());
   }
+  log_config.start_time = std::chrono::high_resolution_clock::now();
+  initialized = true;
 }
 
 void write_log(medusa::log_level level, const char* format, ...) {
@@ -83,8 +97,8 @@ log_exit:
 
 void deinitialize() {
   if (true == log_config.write_outro) {
-    write_log(log_level::log,
-              "/********************* END OF LOG *********************/\n");
+    double time = get_elapsed_seconds();
+    write_log(log_level::log, "took %lf seconds.\n", time);
   }
 
   if (nullptr != log_file) {
