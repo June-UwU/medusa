@@ -4,20 +4,29 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <mutex>
+
 namespace medusa {
 
 #define write_to_console(level, format, ...) \
   if (level >= log_config.console_level) {   \
     printf(format, __VA_ARGS__);             \
+    if (true == log_config.force_flush) {    \
+      fflush(stdout);                        \
+    }                                        \
   }
 #define write_to_file(level, file, format, ...)                \
   if (nullptr != log_file && level >= log_config.file_level) { \
     fprintf(file, format, __VA_ARGS__);                        \
-  };
+    if (true == log_config.force_flush) {                      \
+      fflush(stdout);                                          \
+    }                                                          \
+  }
 
 config log_config;
 FILE* log_file = nullptr;
 bool initialized = false;
+std::mutex log_mutex;
 
 const char* get_color_code(log_level level) {
   if (false == log_config.use_color) {
@@ -59,12 +68,6 @@ double get_elapsed_seconds() {
   return time_elapsed.count();
 }
 
-void write_banner() {
-  write_log(log_level::log, "Medusa Version %d.%d.%d\n",
-            get_major(medusa_version), get_minor(medusa_version),
-            get_patch(medusa_version));
-}
-
 void initialize(const medusa::config& conf) {
   log_config = conf;
 
@@ -73,7 +76,9 @@ void initialize(const medusa::config& conf) {
   }
 
   if (true == conf.write_intro) {
-    write_banner();
+    write_log(log_level::log, "Medusa Version %d.%d.%d\n",
+              get_major(medusa_version), get_minor(medusa_version),
+              get_patch(medusa_version));
   }
 
   if (true == log_config.write_to_file && nullptr == log_file) {
@@ -89,6 +94,7 @@ void initialize(const medusa::config& conf) {
 void write_log(medusa::log_level level, const char* format, ...) {
   static char buffer[512];
 
+  const std::lock_guard<std::mutex> lock(log_mutex);
   va_list args;
   va_start(args, format);
   vsnprintf(buffer, 512, format, args);
@@ -102,6 +108,7 @@ void write_log(medusa::log_level level, const char* format, ...) {
 void write_timed_log(medusa::log_level level, const char* format, ...) {
   static char buffer[512];
 
+  const std::lock_guard<std::mutex> lock(log_mutex);
   va_list args;
   va_start(args, format);
   vsnprintf(buffer, 512, format, args);
